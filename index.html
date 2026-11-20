@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101323">
+<title>PLAYZONE | Mini Games</title>
+<style>
+:root{--bg:#0c1020;--panel:#171d33;--panel2:#202943;--text:#f5f7ff;--muted:#aab4cc;--a:#8b7cff;--b:#4de0bd;--line:#303b59}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -15%,#343064 0,transparent 45%),var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+.wrap{width:min(960px,94%);margin:auto;padding:28px 0 40px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:26px}.logo{font-size:21px;font-weight:900;letter-spacing:1px}.logo span{color:var(--b)}.offline{font-size:12px;color:var(--b);background:#143b37;padding:7px 11px;border-radius:99px}
+.hero{text-align:center;margin:25px 0 28px}.hero h1{font-size:clamp(34px,7vw,58px);margin:0 0 7px;line-height:1.2}.hero h1 em{font-style:normal;color:var(--a)}.hero p{color:var(--muted);margin:0}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:17px}.tab{background:var(--panel);border:1px solid var(--line);color:var(--text);padding:14px 8px;border-radius:15px;font:inherit;font-weight:750;cursor:pointer}.tab small{display:block;color:var(--muted);font-size:11px;font-weight:500;margin-top:4px}.tab.active{border-color:var(--a);background:linear-gradient(145deg,#302c58,#1b2340);box-shadow:0 0 0 1px #8b7cff33}
+.game{display:none;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:clamp(16px,4vw,28px);min-height:390px}.game.active{display:block}.gamehead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.game h2{margin:0;font-size:22px}.muted{color:var(--muted);font-size:13px}.btn{background:var(--a);color:white;border:0;border-radius:12px;padding:10px 16px;font:inherit;font-weight:750;cursor:pointer}.btn.alt{background:var(--panel2);border:1px solid var(--line)}.btn:active,.tab:active{transform:scale(.98)}
+.center{text-align:center}.scoreline{display:flex;justify-content:center;gap:26px;margin:12px 0 16px;color:var(--muted)}.scoreline strong{color:var(--b);font-size:20px}
+canvas{display:block;width:min(100%,360px);height:auto;aspect-ratio:1;background:#0c1427;border:1px solid #34415f;border-radius:16px;margin:0 auto;touch-action:none}
+.snakecontrols{display:grid;grid-template-columns:repeat(3,54px);gap:7px;justify-content:center;margin:14px auto 0;direction:ltr}.snakecontrols button{height:43px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:white;font-size:19px}
+.board{display:grid;grid-template-columns:repeat(3,minmax(72px,100px));gap:9px;justify-content:center;margin:20px auto}.cell{aspect-ratio:1;border:1px solid var(--line);border-radius:16px;background:#0e162a;color:white;font-size:clamp(35px,8vw,52px);font-weight:900;cursor:pointer}.cell.x{color:var(--a)}.cell.o{color:var(--b)}
+.status{min-height:26px;color:var(--b);font-weight:700;margin:10px 0}
+.memorygrid{display:grid;grid-template-columns:repeat(4,minmax(54px,82px));gap:9px;justify-content:center;margin:20px auto}.memorycard{aspect-ratio:1;border:1px solid var(--line);border-radius:14px;background:#0e162a;color:white;font-size:clamp(23px,5vw,32px);cursor:pointer}.memorycard.open,.memorycard.done{background:#2a2c50;border-color:var(--a)}.memorycard.done{background:#143c37;border-color:#2caa8e}
+.footer{text-align:center;color:#7f8ba7;font-size:12px;margin-top:19px}
+@media(max-width:500px){.tabs{gap:6px}.tab{font-size:13px;padding:11px 4px}.gamehead{align-items:flex-start}.offline{font-size:10px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div class="logo">PLAY<span>ZONE</span> ✦</div><div class="offline">● يعمل بلا إنترنت</div></header>
+<section class="hero"><h1>وقت <em>اللعب!</em></h1><p>ثلاث ألعاب خفيفة، اختار لعبتك وابدأ التحدي.</p></section>
+<nav class="tabs" aria-label="اختيار اللعبة">
+<button class="tab active" data-game="snake">🐍 الثعبان<small>اجمع النقاط</small></button>
+<button class="tab" data-game="xo">❌ X و O<small>العب مع صديق</small></button>
+<button class="tab" data-game="memory">🧠 الذاكرة<small>اختبر تركيزك</small></button>
+</nav>
+<section class="game active" id="snake">
+<div class="gamehead"><div><h2>🐍 لعبة الثعبان</h2><div class="muted">استعمل الأسهم أو الأزرار لتحريك الثعبان</div></div><button class="btn" id="snakeStart">ابدأ اللعب</button></div>
+<div class="scoreline"><span>النقاط: <strong id="snakeScore">0</strong></span><span id="snakeMsg">اضغط ابدأ</span></div>
+<canvas id="snakeCanvas" width="360" height="360" aria-label="لعبة الثعبان"></canvas>
+<div class="snakecontrols"><span></span><button data-dir="up">▲</button><span></span><button data-dir="left">◀</button><button data-dir="down">▼</button><button data-dir="right">▶</button></div>
+</section>
+<section class="game" id="xo">
+<div class="gamehead"><div><h2>❌ لعبة X و O</h2><div class="muted">لاعبان على نفس الهاتف</div></div><button class="btn alt" id="xoReset">إعادة اللعب</button></div>
+<div class="center"><div class="status" id="xoStatus">دور اللاعب X</div><div class="board" id="xoBoard"></div><div class="muted">الفائز هو أول من يضع 3 رموز على خط واحد.</div></div>
+</section>
+<section class="game" id="memory">
+<div class="gamehead"><div><h2>🧠 تحدي الذاكرة</h2><div class="muted">اقلب البطاقات واعثر على الأزواج المتشابهة</div></div><button class="btn alt" id="memReset">خلط من جديد</button></div>
+<div class="scoreline"><span>المحاولات: <strong id="memMoves">0</strong></span><span>الأزواج: <strong id="memPairs">0/8</strong></span></div>
+<div class="memorygrid" id="memoryGrid"></div><div class="center status" id="memStatus">وجد جميع الأزواج!</div>
+</section>
+<div class="footer">PLAYZONE · صُنع بـ HTML و CSS و JavaScript · ملف واحد فقط</div>
+</div>
+<script>
+const tabs=document.querySelectorAll('.tab'), games=document.querySelectorAll('.game');
+tabs.forEach(t=>t.addEventListener('click',()=>{tabs.forEach(x=>x.classList.toggle('active',x===t));games.forEach(g=>g.classList.toggle('active',g.id===t.dataset.game));}));
+
+// Snake
+const canvas=document.getElementById('snakeCanvas'),ctx=canvas.getContext('2d'),N=18,S=20;
+let snake,food,dir,nextDir,tick,score=0,running=false,loop=null;
+function randFood(){let p;do{p={x:Math.floor(Math.random()*N),y:Math.floor(Math.random()*N)}}while(snake.some(s=>s.x===p.x&&s.y===p.y));return p}
+function drawSnake(){ctx.fillStyle='#0c1427';ctx.fillRect(0,0,360,360);ctx.strokeStyle='#17243b';for(let i=1;i<N;i++){ctx.beginPath();ctx.moveTo(i*S,0);ctx.lineTo(i*S,360);ctx.moveTo(0,i*S);ctx.lineTo(360,i*S);ctx.stroke()}ctx.fillStyle='#ff668c';ctx.beginPath();ctx.arc(food.x*S+10,food.y*S+10,7,0,Math.PI*2);ctx.fill();snake.forEach((p,i)=>{ctx.fillStyle=i===0?'#8b7cff':'#4de0bd';ctx.beginPath();ctx.roundRect(p.x*S+2,p.y*S+2,16,16,5);ctx.fill()})}
+function resetSnake(){snake=[{x:8,y:9},{x:7,y:9},{x:6,y:9}];dir={x:1,y:0};nextDir=dir;food=randFood();score=0;document.getElementById('snakeScore').textContent=0;drawSnake()}
+function endSnake(){running=false;clearInterval(loop);document.getElementById('snakeMsg').textContent='انتهت اللعبة! اضغط ابدأ من جديد';}
+function step(){dir=nextDir;const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};if(head.x<0||head.y<0||head.x>=N||head.y>=N||snake.some((p,i)=>i<snake.length-1&&p.x===head.x&&p.y===head.y)){endSnake();return}snake.unshift(head);if(head.x===food.x&&head.y===food.y){score+=10;document.getElementById('snakeScore').textContent=score;food=randFood()}else snake.pop();drawSnake()}
+function changeDir(d){if(!running)return;const dirs={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}},v=dirs[d];if(v.x!==-dir.x||v.y!==-dir.y)nextDir=v}
+document.getElementById('snakeStart').onclick=()=>{clearInterval(loop);resetSnake();running=true;document.getElementById('snakeMsg').textContent='يلا!';loop=setInterval(step,125)};
+document.querySelectorAll('[data-dir]').forEach(b=>b.onclick=()=>changeDir(b.dataset.dir));
+document.addEventListener('keydown',e=>{const m={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};if(m[e.key]){e.preventDefault();changeDir(m[e.key])}});
+resetSnake();
+
+// Tic tac toe
+let cells=Array(9).fill(''),turn='X',finished=false;const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+function renderXO(){const board=document.getElementById('xoBoard');board.innerHTML='';cells.forEach((v,i)=>{const b=document.createElement('button');b.className='cell '+(v?v.toLowerCase():'');b.textContent=v;b.setAttribute('aria-label','مربع '+(i+1));b.onclick=()=>playXO(i);board.appendChild(b)})}
+function playXO(i){if(finished||cells[i])return;cells[i]=turn;const win=wins.some(line=>line.every(n=>cells[n]===turn));if(win){document.getElementById('xoStatus').textContent='🎉 اللاعب '+turn+' ربح!';finished=true}else if(cells.every(Boolean)){document.getElementById('xoStatus').textContent='تعادل!';finished=true}else{turn=turn==='X'?'O':'X';document.getElementById('xoStatus').textContent='دور اللاعب '+turn}renderXO()}
+function resetXO(){cells=Array(9).fill('');turn='X';finished=false;document.getElementById('xoStatus').textContent='دور اللاعب X';renderXO()}
+document.getElementById('xoReset').onclick=resetXO;resetXO();
+
+// Memory
+const symbols=['🚀','🎮','⚽','🎧','⭐','🔥','🍕','🐼'];let first=null,lock=false,moves=0,pairs=0,matched=new Set(),memTimer;
+function setupMemory(){clearTimeout(memTimer);first=null;lock=false;moves=0;pairs=0;matched=new Set();document.getElementById('memMoves').textContent='0';document.getElementById('memPairs').textContent='0/8';document.getElementById('memStatus').textContent='قلب البطاقات وابحث عن الأزواج';const deck=[...symbols,...symbols].sort(()=>Math.random()-.5),grid=document.getElementById('memoryGrid');grid.innerHTML='';deck.forEach((s,i)=>{const b=document.createElement('button');b.className='memorycard';b.textContent='?';b.dataset.symbol=s;b.onclick=()=>flip(b,i);grid.appendChild(b)})}
+function flip(btn,i){if(lock||matched.has(i)||btn.classList.contains('open'))return;btn.classList.add('open');btn.textContent=btn.dataset.symbol;if(first===null){first={btn,i};return}moves++;document.getElementById('memMoves').textContent=moves;if(first.btn.dataset.symbol===btn.dataset.symbol){matched.add(first.i);matched.add(i);first.btn.classList.add('done');btn.classList.add('done');pairs++;document.getElementById('memPairs').textContent=pairs+'/8';first=null;if(pairs===8)document.getElementById('memStatus').textContent='🏆 ممتاز! كملتي جميع الأزواج في '+moves+' محاولات.'}else{lock=true;const prev=first;first=null;memTimer=setTimeout(()=>{prev.btn.classList.remove('open');btn.classList.remove('open');prev.btn.textContent='?';btn.textContent='?';lock=false},750)}}
+document.getElementById('memReset').onclick=setupMemory;setupMemory();
+</script>
+</body>
+</html>
